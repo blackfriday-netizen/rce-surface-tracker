@@ -1295,8 +1295,8 @@ window.TRACKER_DATA = {
    "source_notes": "File sync, some RCE history in past.",
    "in_unified": true,
    "in_census": true,
-   "takeover": "unknown",
-   "takeover_note": "",
+   "takeover": "claim",
+   "takeover_note": "The web installer creates the admin unauthenticated, but it is gated on config/CAN_INSTALL (removed on completion) and also needs DB credentials.",
    "noise": false
   },
   {
