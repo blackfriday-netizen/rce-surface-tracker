@@ -62,13 +62,35 @@ sets of numbers.
 
 ### Where the state lives
 
-**In your browser only.** Checkboxes and notes are stored in `localStorage` and
-are never transmitted anywhere. Use **Download JSON** to save a snapshot and
-**Import** to restore one or move it to another browser. **Reset** clears
-everything after a confirmation.
+**Two places.**
 
-Because the state is local, a snapshot is the only way to share progress or
-keep a record of it.
+**1. This browser.** Checkboxes and notes are stored in `localStorage` and are
+never transmitted anywhere. This survives a browser restart — verified with a
+real persistent browser profile: full browser shutdown, relaunch, state
+intact (checks, notes, row tint, header counter, progress bar).
+
+**2. Optionally, a GitHub repository.** Open **Save & sync**, paste a token,
+and the state is also pushed to a file in a repo. That copy survives a new
+browser, a new device, cleared site data, and a private window. It is the
+only way to move your progress between machines.
+
+> **The token.** It is kept in this browser's `localStorage` and is sent only
+> to `api.github.com`. It is never written into the page or the repository.
+> Use a token scoped to the state repository alone, and revoke it from GitHub
+> settings when you are done. The default target,
+> `blackfriday-netizen/rce-surface-tracker-state`, is a **private** repo, so
+> your notes are not published.
+
+**Merging.** Every entry carries a timestamp. When the page pulls, each key is
+taken from whichever side has the newer timestamp, so two devices working on
+different products do not clobber each other, and a note you edited on one
+device is not reverted by another device's stale copy. A push that loses a
+race (HTTP 409) re-reads the blob SHA and retries once.
+
+**Export / Import** moves a snapshot between browsers without any token.
+
+Because the state is local by default, a snapshot is the only way to share
+progress or keep a record of it unless sync is enabled.
 
 ## Data provenance
 
@@ -85,6 +107,17 @@ a plain script, so the page also works when opened directly from disk, where
 Every API call behind these numbers is logged in the workspace ledger
 `Zoomeye-Global-Discovery/data/zoomeye-api-ledger.json`.
 
+## Files
+
+| File | Purpose |
+|---|---|
+| `index.html` | Page structure |
+| `style.css` | Styles, light and dark |
+| `app.js` | Rendering, filtering, sorting, local state, export/import |
+| `sync.js` | GitHub-backed sync: the Contents API client and the merge policy |
+| `data.js` | The dataset, as a plain script (works offline, from `file://`) |
+| `data.json` | The same dataset, as JSON |
+
 ## What is and is not in here
 
 **In:** product names, population counts, class and tier classification,
@@ -95,6 +128,10 @@ RCE-path descriptions, and public CVE identifiers.
 The one credential-shaped string in the data is `admin/admin` for Grafana,
 which is that product's own documented first-run default and is public vendor
 documentation — it is not a credential to any target.
+
+**Your notes are not published either.** They live in your browser's
+`localStorage` and, if you enable sync, in a **private** repository. The
+public page contains only the aggregate measurements.
 
 ## Caveats
 

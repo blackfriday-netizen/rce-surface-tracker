@@ -1,11 +1,21 @@
 /* RCE Surface Tracker - app
  *
- * State (checkbox + notes) is stored in localStorage under one key.  Nothing
- * is transmitted.  Export/Import moves a snapshot between browsers.
+ * State (checkbox + notes) has two homes:
+ *   1. localStorage - survives a browser restart (verified with a real
+ *      persistent browser profile).
+ *   2. optionally, a file in a GitHub repo - survives a new browser, a new
+ *      device, cleared storage, or a private window.  See sync.js.
+ *
+ * State shape (v2):  { checks: { key: {v: <bool>, t: <ms>} },
+ *                      notes: { key: {v: <string>, t: <ms>} } }
+ * The per-key timestamp is what lets a merge between two devices pick the
+ * newer value for each key instead of one side overwriting the other.
+ * v1 shape ({key: true} / {key: "text"}) is migrated on load.
  */
 'use strict';
 
-const STORE_KEY = 'rce-tracker-state-v1';
+const STORE_KEY = 'rce-tracker-state-v2';
+const STORE_KEY_V1 = 'rce-tracker-state-v1';
 const DATA_URL = 'data.json';
 
 let DATA = null;
@@ -14,17 +24,34 @@ let view = { q: '', cls: '', tier: '', take: '', sort: 'priority', show: 'all', 
 
 /* ---------------- state ---------------- */
 
+function now() { return Date.now(); }
+
+/* normalizeState() lives in sync.js (loaded before app.js) so the merge
+ * logic and the loader share one implementation. */
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return;
-    const p = JSON.parse(raw);
-    if (p && typeof p === 'object') {
-      state.checks = (p.checks && typeof p.checks === 'object') ? p.checks : {};
-      state.notes = (p.notes && typeof p.notes === 'object') ? p.notes : {};
+    if (raw) {
+      state = normalizeState(JSON.parse(raw));
+      return;
+    }
+    // migrate the v1 store if it exists
+    const old = localStorage.getItem(STORE_KEY_V1);
+    if (old) {
+      state = normalizeState(JSON.parse(old));
+      saveStateNow();
     }
   } catch (e) {
     console.warn('could not read saved state', e);
+  }
+}
+
+function saveStateNow() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('could not save state', e);
   }
 }
 
@@ -32,12 +59,22 @@ let saveTimer = null;
 function saveState() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn('could not save state', e);
-    }
+    saveStateNow();
+    scheduleSyncPush();
   }, 180);
+}
+
+/* Set a value with a timestamp. Returns true if the value actually changed. */
+function setValue(kind, key, value) {
+  const cur = state[kind][key];
+  if (cur && JSON.stringify(cur.v) === JSON.stringify(value)) return false;
+  if (value === undefined || value === null || value === '' ||
+      (kind === 'checks' && !value)) {
+    delete state[kind][key];
+  } else {
+    state[kind][key] = { v: value, t: now() };
+  }
+  return true;
 }
 
 /* ---------------- helpers ---------------- */
@@ -76,8 +113,15 @@ function rowText(r) {
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
-function isDone(r) { return !!state.checks[r.key]; }
-function hasNote(r) { return !!(state.notes[r.key] || '').trim(); }
+function isDone(r) { return !!(state.checks[r.key] && state.checks[r.key].v); }
+function hasNote(r) {
+  const n = state.notes[r.key];
+  return !!(n && String(n.v || '').trim());
+}
+function noteValue(r) {
+  const n = state.notes[r.key];
+  return n ? String(n.v || '') : '';
+}
 
 function matches(r) {
   if (view.q) {
@@ -140,7 +184,7 @@ function sortRows(rows) {
 function renderRow(r) {
   const key = esc(r.key);
   const done = isDone(r);
-  const note = state.notes[r.key] || '';
+  const note = noteValue(r);
 
   const tier = r.tier
     ? `<span class="badge b-${esc(r.tier)}">${TIER_LABEL[r.tier] || esc(r.tier)}</span>`
@@ -298,7 +342,7 @@ document.addEventListener('change', e => {
   const el = e.target;
   if (el.classList && el.classList.contains('chk')) {
     const k = el.dataset.key;
-    if (el.checked) state.checks[k] = true; else delete state.checks[k];
+    setValue('checks', k, el.checked ? true : undefined);
     saveState();
     // Update the row in place rather than rebuilding the table: a rebuild
     // would replace the clicked element and lose focus state, and it makes
@@ -319,7 +363,7 @@ document.addEventListener('input', e => {
   if (el.classList && el.classList.contains('notes')) {
     const k = el.dataset.key;
     const v = el.value;
-    if (v.trim()) state.notes[k] = v; else delete state.notes[k];
+    setValue('notes', k, v.trim() ? v : undefined);
     saveState();
     // update counters without re-rendering the textarea (would lose focus)
     refreshCounters();
@@ -331,7 +375,7 @@ document.addEventListener('input', e => {
 function exportState() {
   const payload = {
     kind: 'rce-tracker-state',
-    version: 1,
+    version: 2,
     exported: new Date().toISOString(),
     checks: state.checks,
     notes: state.notes
@@ -370,16 +414,15 @@ function importState(file) {
     try {
       const p = JSON.parse(fr.result);
       if (!p || typeof p !== 'object') throw new Error('not an object');
-      const c = p.checks && typeof p.checks === 'object' ? p.checks : {};
-      const n = p.notes && typeof p.notes === 'object' ? p.notes : {};
+      const norm = normalizeState(p);
       let ck = 0, nt = 0;
-      for (const k of Object.keys(c)) {
-        if (DATA.rows.some(r => r.key === k)) { state.checks[k] = c[k]; ck++; }
+      for (const k of Object.keys(norm.checks)) {
+        if (DATA.rows.some(r => r.key === k)) { state.checks[k] = norm.checks[k]; ck++; }
       }
-      for (const k of Object.keys(n)) {
-        if (DATA.rows.some(r => r.key === k)) { state.notes[k] = n[k]; nt++; }
+      for (const k of Object.keys(norm.notes)) {
+        if (DATA.rows.some(r => r.key === k)) { state.notes[k] = norm.notes[k]; nt++; }
       }
-      saveState();
+      saveStateNow();
       render();
       alert(`Imported ${ck} checkboxes and ${nt} notes.`);
     } catch (e) {
@@ -392,8 +435,158 @@ function importState(file) {
 function resetAll() {
   if (!confirm('Clear every checkbox and note stored in this browser?\n\nThis cannot be undone. Export first if you want a backup.')) return;
   state = { checks: {}, notes: {} };
-  saveState();
+  saveStateNow();
   render();
+}
+
+/* ---------------- sync ---------------- */
+
+/* Push is debounced: typing a note fires an input event per keystroke, and
+ * each one would otherwise be a GitHub API write. */
+let syncPushTimer = null;
+let syncInFlight = false;
+
+function scheduleSyncPush() {
+  if (!syncCfg.enabled || !syncCfg.auto || !syncCfg.token) return;
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(() => { doPush('auto'); }, 2500);
+}
+
+function syncLog(msg, isError) {
+  const el = document.getElementById('syncLog');
+  if (el) {
+    el.textContent = msg;
+    el.classList.toggle('is-error', !!isError);
+  }
+  const dot = document.getElementById('syncDot');
+  if (dot) dot.className = 'sync-dot' + (isError ? ' dot-error' :
+    (syncCfg.enabled ? ' dot-ok' : ' dot-off'));
+  const st = document.getElementById('syncStatus');
+  if (st) st.textContent = isError ? 'Sync error' :
+    (syncCfg.enabled ? 'Sync on' : 'Save & sync');
+}
+
+async function doPull() {
+  if (!syncCfg.token) { syncLog('No token configured.', true); return; }
+  syncInFlight = true;
+  syncLog('Pulling…');
+  try {
+    const cur = await ghFetch();
+    if (!cur) {
+      syncLog('No state file in the repository yet - press Push to create it.');
+      return;
+    }
+    const { merged, conflicts } = mergeState(state, cur.json);
+    const before = JSON.stringify(state);
+    state = merged;
+    const changed = JSON.stringify(state) !== before;
+    saveStateNow();
+    render();
+    const n = Object.keys(state.checks).length + Object.keys(state.notes).length;
+    syncLog(`Pulled ${n} entries from ${syncCfg.owner}/${syncCfg.repo}` +
+            (conflicts.length ? ` - ${conflicts.length} key(s) differed, newer timestamp kept` : '') +
+            (changed ? ' (updated)' : ' (already up to date)'));
+    syncCfg.lastPull = Date.now();
+    saveSyncCfg();
+  } catch (e) {
+    syncLog('Pull failed: ' + e.message, true);
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+async function doPush(reason) {
+  if (!syncCfg.token) { syncLog('No token configured.', true); return; }
+  if (syncInFlight) { scheduleSyncPush(); return; }
+  syncInFlight = true;
+  syncLog(reason === 'auto' ? 'Pushing…' : 'Pushing…');
+  try {
+    const payload = {
+      kind: 'rce-tracker-state',
+      version: 2,
+      updated: new Date().toISOString(),
+      checks: state.checks,
+      notes: state.notes
+    };
+    await ghPush(payload);
+    syncCfg.lastPush = Date.now();
+    saveSyncCfg();
+    const n = Object.keys(state.checks).length + Object.keys(state.notes).length;
+    syncLog(`Pushed ${n} entries to ${syncCfg.owner}/${syncCfg.repo}/${syncCfg.path}`);
+  } catch (e) {
+    syncLog('Push failed: ' + e.message, true);
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+function readSyncInputs() {
+  const val = id => {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  };
+  syncCfg.token = val('syncToken') || syncCfg.token;
+  syncCfg.owner = val('syncOwner') || syncCfg.owner;
+  syncCfg.repo = val('syncRepo') || syncCfg.repo;
+  syncCfg.branch = val('syncBranch') || syncCfg.branch;
+  syncCfg.path = val('syncPath') || syncCfg.path;
+  syncCfg.enabled = document.getElementById('syncEnabled').checked;
+  syncCfg.auto = document.getElementById('syncAuto').checked;
+  saveSyncCfg();
+}
+
+function fillSyncInputs() {
+  document.getElementById('syncToken').value = syncCfg.token || '';
+  document.getElementById('syncOwner').value = syncCfg.owner || '';
+  document.getElementById('syncRepo').value = syncCfg.repo || '';
+  document.getElementById('syncBranch').value = syncCfg.branch || '';
+  document.getElementById('syncPath').value = syncCfg.path || '';
+  document.getElementById('syncEnabled').checked = !!syncCfg.enabled;
+  document.getElementById('syncAuto').checked = !!syncCfg.auto;
+}
+
+function initSync() {
+  loadSyncCfg();
+  fillSyncInputs();
+
+  const toggle = document.getElementById('syncToggle');
+  const panel = document.getElementById('syncPanel');
+  toggle.addEventListener('click', () => {
+    const open = panel.hidden;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  ['syncToken', 'syncOwner', 'syncRepo', 'syncBranch', 'syncPath'].forEach(id => {
+    document.getElementById(id).addEventListener('change', readSyncInputs);
+  });
+  document.getElementById('syncEnabled').addEventListener('change', () => {
+    readSyncInputs();
+    if (syncCfg.enabled) { syncLog('Sync enabled.'); doPull(); }
+    else syncLog('Sync disabled. State is still saved in this browser.');
+  });
+  document.getElementById('syncAuto').addEventListener('change', readSyncInputs);
+
+  document.getElementById('btnTest').addEventListener('click', async () => {
+    readSyncInputs();
+    syncLog('Testing…');
+    try {
+      const r = await ghTest();
+      syncLog(`Connected: ${r.full_name} (${r.private ? 'private' : 'public'}), push permission: ${r.permission}`);
+    } catch (e) {
+      syncLog('Connection failed: ' + e.message, true);
+    }
+  });
+  document.getElementById('btnPull').addEventListener('click', () => { readSyncInputs(); doPull(); });
+  document.getElementById('btnPush').addEventListener('click', () => { readSyncInputs(); doPush('manual'); });
+
+  if (syncCfg.enabled && syncCfg.token) {
+    syncLog('Sync enabled - pulling latest state…');
+    doPull();
+  } else {
+    syncLog('Not configured. State is saved in this browser.');
+    syncLog('');
+  }
 }
 
 /* ---------------- boot ---------------- */
@@ -420,6 +613,7 @@ async function boot() {
     return;
   }
   initControls();
+  initSync();
   document.getElementById('btnExport').addEventListener('click', exportState);
   document.getElementById('btnImport').addEventListener('click', () => document.getElementById('fileImport').click());
   document.getElementById('fileImport').addEventListener('change', e => {

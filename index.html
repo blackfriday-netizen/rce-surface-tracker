@@ -95,6 +95,67 @@
     <p class="result-line"><span id="resultCount">&mdash;</span> <span id="resultNote"></span></p>
   </section>
 
+  <section class="sync" aria-label="Sync">
+    <button type="button" class="sync-toggle" id="syncToggle" aria-expanded="false">
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncStatus">Save &amp; sync</span>
+      <span class="sync-caret" aria-hidden="true">&#9662;</span>
+    </button>
+    <div class="sync-panel" id="syncPanel" hidden>
+      <p class="sync-lead">
+        Notes and checkmarks are always saved in this browser. Enable sync to
+        also keep a copy in a GitHub repository, so your work follows you to
+        another browser, another device, or after you clear site data.
+      </p>
+      <div class="control-row">
+        <div class="field grow">
+          <label for="syncToken">GitHub token</label>
+          <input type="password" id="syncToken" placeholder="ghp_&hellip; (repo scope)" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="syncOwner">Owner</label>
+          <input type="text" id="syncOwner" placeholder="blackfriday-netizen" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="syncRepo">Repository</label>
+          <input type="text" id="syncRepo" placeholder="rce-surface-tracker-state" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="syncBranch">Branch</label>
+          <input type="text" id="syncBranch" placeholder="main" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="syncPath">File</label>
+          <input type="text" id="syncPath" placeholder="tracker-state.json" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="control-row" style="margin-top:12px">
+        <div class="field">
+          <label>Behaviour</label>
+          <div class="seg-toggle">
+            <label class="chk-inline"><input type="checkbox" id="syncEnabled"> <span>Sync enabled</span></label>
+            <label class="chk-inline"><input type="checkbox" id="syncAuto"> <span>Push automatically</span></label>
+          </div>
+        </div>
+        <div class="field field-actions">
+          <label>Actions</label>
+          <div class="btn-row">
+            <button type="button" id="btnTest" class="btn">Test connection</button>
+            <button type="button" id="btnPull" class="btn">Pull</button>
+            <button type="button" id="btnPush" class="btn">Push</button>
+          </div>
+        </div>
+      </div>
+      <p class="sync-log" id="syncLog">Not configured.</p>
+      <p class="sync-warn">
+        The token is kept in this browser's local storage and is sent only to
+        <code>api.github.com</code>. It is never written into the page or the
+        repository. Use a token scoped to the state repository only, and revoke
+        it from GitHub settings when you are done.
+      </p>
+    </div>
+  </section>
+
   <section class="legend" aria-label="Legend">
     <div class="legend-item"><span class="sw sw-t1"></span><b>T1</b> product's own admin plane executes code (file mgr, task queue, CI runner, container run)</div>
     <div class="legend-item"><span class="sw sw-t2"></span><b>T2</b> device management plane executes code (terminal, diagnostics, config import)</div>
@@ -161,6 +222,7 @@
 </footer>
 
 <script src="data.js"></script>
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

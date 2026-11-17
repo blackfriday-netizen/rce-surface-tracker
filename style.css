@@ -336,6 +336,90 @@ textarea.notes::placeholder { color: var(--fg-faint); }
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* ---------- sync ---------- */
+.sync {
+  margin: 0 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.sync-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--fg);
+  font: inherit;
+  font-size: 13.5px;
+  padding: 11px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.sync-toggle:hover { background: var(--bg-3); }
+.sync-caret { margin-left: auto; color: var(--fg-faint); transition: transform 0.15s; }
+.sync-toggle[aria-expanded="true"] .sync-caret { transform: rotate(180deg); }
+.sync-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--fg-faint);
+}
+.dot-ok { background: var(--t1); box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.16); }
+.dot-error { background: var(--claim); box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.16); }
+.dot-off { background: var(--fg-faint); }
+
+.sync-panel {
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--line);
+}
+.sync-lead {
+  margin: 12px 0 14px;
+  color: var(--fg-dim);
+  font-size: 13.5px;
+  max-width: 80ch;
+}
+.seg-toggle { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 6px; }
+.chk-inline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--fg);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+.chk-inline input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+.sync-log {
+  margin: 14px 0 0;
+  padding: 9px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: 12.5px/1.5 var(--mono);
+  color: var(--fg-dim);
+  word-break: break-word;
+}
+.sync-log.is-error { color: var(--claim); border-color: var(--claim); }
+.sync-warn {
+  margin: 12px 0 0;
+  color: var(--fg-faint);
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-width: 90ch;
+}
+.sync-warn code {
+  font: 12px var(--mono);
+  background: var(--bg-3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
 /* ---------- about ---------- */
 .notes-about {
   margin: 26px 0;
