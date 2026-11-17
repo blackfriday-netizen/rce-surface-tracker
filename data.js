@@ -1289,7 +1289,7 @@ window.TRACKER_DATA = {
    "zoomeye": 12557,
    "population": 1724907,
    "measured_by": "title",
-   "rce_path": "Pre-auth command injection in the richdocumentscode app (CVE-2026-110447, exploited in the wild, CISA KEV); admin-plane app install executes PHP; user-level RCE via workflow scope validation (CVE-2023-26482)",
+   "rce_path": "Pre-auth command injection in the richdocumentscode app (CVE-2026-110447, exploited in the wild, CISA KEV) - confirmed reproducible, but on live hosts gated by front-end Host validation and the coolwsd-down runtime precondition; admin-plane app install executes PHP; user-level RCE via workflow scope validation (CVE-2023-26482)",
    "cves": "CVE-2026-110447, CVE-2026-104190, CVE-2023-26482, CVE-2025-66208, CVE-2026-45690",
    "also_seen_as": [],
    "source_notes": "File sync, some RCE history in past.",
