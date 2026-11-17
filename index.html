@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internet-Exposed RCE Surface Tracker</title>
+<meta name="description" content="Cross-reference of Netlas and ZoomEye measurements for software panels with known or documented remote code execution paths.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>&#x2699;</text></svg>">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">&#x2699;</span>
+      <div>
+        <h1>Internet-Exposed RCE Surface Tracker</h1>
+        <p class="tagline">Netlas &times; ZoomEye cross-reference &mdash; software panels with known or documented remote code execution paths.</p>
+      </div>
+    </div>
+    <div class="masthead-meta">
+      <div class="stat"><span class="stat-n" id="statRows">&mdash;</span><span class="stat-l">products</span></div>
+      <div class="stat"><span class="stat-n" id="statT1">&mdash;</span><span class="stat-l">tier T1</span></div>
+      <div class="stat"><span class="stat-n" id="statClaim">&mdash;</span><span class="stat-l">claim-window</span></div>
+      <div class="stat"><span class="stat-n" id="statDone">0</span><span class="stat-l">reviewed</span></div>
+    </div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+</header>
+
+<main class="wrap">
+
+  <section class="controls" aria-label="Filters">
+    <div class="control-row">
+      <div class="field grow">
+        <label for="q">Search</label>
+        <input type="search" id="q" placeholder="product, class, RCE path, CVE&hellip;" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="fClass">Class</label>
+        <select id="fClass"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="fTier">Tier</label>
+        <select id="fTier"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="fTake">Takeover window</label>
+        <select id="fTake"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="fSort">Sort</label>
+        <select id="fSort">
+          <option value="priority">Priority (tier, then size)</option>
+          <option value="pop">Population</option>
+          <option value="name">Name</option>
+          <option value="tier">Tier</option>
+          <option value="class">Class</option>
+          <option value="netlas">Netlas</option>
+          <option value="zoomeye">ZoomEye</option>
+          <option value="reviewed">Reviewed</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-row control-row-2">
+      <div class="field">
+        <label>Show</label>
+        <div class="segmented" role="group" aria-label="Show">
+          <button type="button" class="seg active" data-show="all">All</button>
+          <button type="button" class="seg" data-show="todo">Not reviewed</button>
+          <button type="button" class="seg" data-show="done">Reviewed</button>
+          <button type="button" class="seg" data-show="noted">Has notes</button>
+          <button type="button" class="seg" data-show="focus">Actionable</button>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="field field-actions">
+        <label for="notesView">Notes</label>
+        <div class="segmented" role="group" aria-label="Notes display">
+          <button type="button" class="seg active" data-notes="inline">Inline</button>
+          <button type="button" class="seg" data-notes="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="field field-actions">
+        <label>Export</label>
+        <div class="btn-row">
+          <button type="button" id="btnExport" class="btn">Download JSON</button>
+          <button type="button" id="btnImport" class="btn">Import</button>
+          <input type="file" id="fileImport" accept="application/json,.json" hidden>
+          <button type="button" id="btnReset" class="btn btn-warn">Reset</button>
+        </div>
+      </div>
+    </div>
+    <p class="result-line"><span id="resultCount">&mdash;</span> <span id="resultNote"></span></p>
+  </section>
+
+  <section class="legend" aria-label="Legend">
+    <div class="legend-item"><span class="sw sw-t1"></span><b>T1</b> product's own admin plane executes code (file mgr, task queue, CI runner, container run)</div>
+    <div class="legend-item"><span class="sw sw-t2"></span><b>T2</b> device management plane executes code (terminal, diagnostics, config import)</div>
+    <div class="legend-item"><span class="sw sw-t3"></span><b>T3</b> web/CGI stack, code execution is a configuration outcome</div>
+    <div class="legend-item"><span class="sw sw-t4"></span><b>T4</b> not an RCE surface (CDN edge, WAF, generic proxy)</div>
+    <div class="legend-item"><span class="sw sw-claim"></span><b>claim</b> first network visitor can take ownership, no prior secret</div>
+    <div class="legend-item"><span class="sw sw-default"></span><b>default</b> well-known default credential, no takeover window</div>
+    <div class="legend-item"><span class="sw sw-secret"></span><b>secret</b> needs a token or root secret printed/stored out of band</div>
+    <div class="legend-item"><span class="sw sw-noise"></span><b>noise</b> population dominated by unrelated sites</div>
+  </section>
+
+  <div class="table-scroll">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th class="c-check" scope="col"><span class="vh">Reviewed</span></th>
+          <th class="c-name" scope="col">Product</th>
+          <th class="c-num" scope="col" title="Netlas measured population">Netlas</th>
+          <th class="c-num" scope="col" title="ZoomEye measured population">ZoomEye</th>
+          <th class="c-num" scope="col" title="Merged population (census)">Merged</th>
+          <th class="c-tier" scope="col">Tier</th>
+          <th class="c-class" scope="col">Class</th>
+          <th class="c-take" scope="col">Window</th>
+          <th class="c-path" scope="col">RCE path</th>
+          <th class="c-cve" scope="col">CVE</th>
+          <th class="c-notes" scope="col">Notes</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <p class="empty" id="empty" hidden>No rows match the current filters.</p>
+
+  <section class="notes-about" aria-label="About the data">
+    <h2>About these numbers</h2>
+    <dl>
+      <dt>Netlas / ZoomEye columns</dt>
+      <dd>Per-engine measured populations from the curated cross-reference list. A dash means the product was not queried on that engine, or the result was too low to be meaningful &mdash; not zero.</dd>
+      <dt>Merged column</dt>
+      <dd>The census figure from the merged Netlas+ZoomEye product census, measured by product, title or app fingerprint. It is not the sum of the two engine columns: the engines crawl different corpora and overlap.</dd>
+      <dt>Rows with only engine columns</dt>
+      <dd>Present in the curated list but not carried into the merged census, usually because the population was too low to clear the census threshold or the match was noisy. The per-engine numbers still stand.</dd>
+      <dt>Noise flag</dt>
+      <dd>Two curated entries matched generic page titles across unrelated sites. Their counts are real matches for the string, not for the product.</dd>
+      <dt>Confidence</dt>
+      <dd>From the census: how the population was measured and how strongly it was tied to the product.</dd>
+    </dl>
+    <p class="caveat" id="caveat"></p>
+    <p class="caveat" id="method"></p>
+  </section>
+
+  <section class="notes-about" aria-label="About this tracker">
+    <h2>About this tracker</h2>
+    <p>Checkboxes and notes are stored <b>locally in this browser</b> (localStorage) &mdash; nothing is sent anywhere. Use <b>Download JSON</b> to save a snapshot and <b>Import</b> to restore one or move it to another browser.</p>
+    <p>Every product row also has its own free-text note box. Notes are the working record: what you validated, which port, what the RCE path turned out to be, what you ruled out.</p>
+  </section>
+
+</main>
+
+<footer class="wrap foot">
+  <p>Aggregate exposure measurements only &mdash; product names, population counts, class/tier classification, RCE-path descriptions and public CVE IDs. No host addresses, no credentials, no customer data.</p>
+  <p id="generated"></p>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
