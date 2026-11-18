@@ -1369,30 +1369,6 @@
    "noise": false
   },
   {
-   "key": "nagios",
-   "name": "Nagios Core",
-   "aliases": [
-    "Nagios Core"
-   ],
-   "class": "monitoring",
-   "tier": "T1",
-   "built_in_rce": true,
-   "confidence": "medium",
-   "netlas": null,
-   "zoomeye": null,
-   "population": 1335113,
-   "measured_by": "product",
-   "rce_path": "config definition runs commands, plugin exec",
-   "cves": null,
-   "also_seen_as": [],
-   "source_notes": "",
-   "in_unified": false,
-   "in_census": true,
-   "takeover": "unknown",
-   "takeover_note": "",
-   "noise": false
-  },
-  {
    "key": "f5bigiploadbalancer",
    "name": "F5 BIG-IP load balancer httpd",
    "aliases": [
@@ -2572,6 +2548,30 @@
    "in_census": true,
    "takeover": "unknown",
    "takeover_note": "",
+   "noise": false
+  },
+  {
+   "key": "nagios",
+   "name": "Nagios Core",
+   "aliases": [
+    "Nagios Core"
+   ],
+   "class": "monitoring",
+   "tier": "T1",
+   "built_in_rce": true,
+   "confidence": "medium",
+   "netlas": null,
+   "zoomeye": null,
+   "population": 960,
+   "measured_by": "probe",
+   "rce_path": "Nagios is a family; the RCE surface differs per member. UNAUTHENTICATED RCE paths, and what was actually found live: XI 5.2.6-5.4.12 core-config-manager chain (CVE-2018-8733 auth bypass -> CVE-2018-8734 SQLi in selInfoKey1 -> CVE-2018-8735 command injection via backend/index.php -> CVE-2018-8736 root): the three artefacts (settings.php, helpedit.php, backend/index.php) were confirmed present on ONE live instance, and the chain was NOT executed; XI <=5.5.7 RSS dashlet MagpieRSS (CVE-2018-20171/20172/15708): one live instance carries the scripts and honours the url parameter, but the fetch there goes through the PHP curl extension (libcurl errors: 'Invalid protocol', 'connection failed (11)') so the command-injection sink is ABSENT - TESTED, NEGATIVE, no command ran; NagiosQL <=2.00 RFI (CVE-2007-2709/2710) and CCM <=2012R2.4 SQLi (CVE-2013-6875): no instance at those versions - the CCM instances found are 3.2-3.5; Nagios Core statuswml.cgi command injection (CVE-2009-2288), history.cgi (CVE-2012-6096) and cmd.cgi (CVE-2014-1878): no unauthenticated Core instance - both Core instances found put HTTP Basic auth in front of the CGIs; NRPE (CVE-2013-1362, CVE-2014-2913, CVE-2020-6581, CVE-2020-6582): no instance exposes 5666 - the search engines do not scan that port, so this surface is invisible to a body/title index; NDOUtils (CVE-2024-43199), Thruk (CVE-2024-39915). NO LIVE RCE HAS BEEN PROVEN FOR NAGIOS - the unauthenticated surface is historical: the XI 5.x generation carried it, the current generation does not.",
+   "cves": "CVE-2018-8733, CVE-2018-8734, CVE-2018-8735, CVE-2018-8736, CVE-2018-15708, CVE-2018-20171, CVE-2018-20172, CVE-2019-15949, CVE-2020-15901, CVE-2021-3193, CVE-2021-37344, CVE-2021-37346, CVE-2021-37348, CVE-2021-37351, CVE-2023-48085, CVE-2024-24401, CVE-2024-24402, CVE-2013-1362, CVE-2014-2913, CVE-2020-6581, CVE-2020-6582, CVE-2007-2709, CVE-2007-2710, CVE-2013-6875, CVE-2009-2288, CVE-2012-6096, CVE-2014-1878, CVE-2016-9565, CVE-2024-43199",
+   "also_seen_as": [],
+   "source_notes": "2026-11-18: the product-detection figure carried here before (1,335,113) was MEASURED FALSE - a live probe of 20 hits from that fingerprint found 0 Nagios instances (it fires on unrelated services).  Replaced by a probe-verified LOWER BOUND: ~930 live old Nagios XI (1,034 ZoomEye body-marker hits x 90% live rate, 27/30 probed) + ~20 NagiosQL CCM instances (244 hits x 8% true rate, 4/50 probed) + 4 current XI, 2 Core, 1 NDOUtils confirmed by direct probe.  The true internet-wide population is NOT measurable with the available engines - neither index covers the Nagios long tail.  Workspace: /root/Nagios-RCE-2026t/docs/NAGIOS.md",
+   "in_unified": false,
+   "in_census": true,
+   "takeover": "claim",
+   "takeover_note": "No unauthenticated ADMIN CREATION in the product - the Nagios admin plane always requires credentials.  The documented component-level route is the XI 5.2-5.4 core-config-manager chain (CVE-2018-8733 -> 8734 -> 8735 -> 8736), which ends in a root shell: its artefacts were confirmed present on one live instance and the chain was NOT executed, so this stays a claim rather than a proof.",
    "noise": false
   },
   {
