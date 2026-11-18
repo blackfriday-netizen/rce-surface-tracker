@@ -17,6 +17,7 @@
   --claim: #f85149;
   --default: #d29922;
   --secret: #58a6ff;
+  --proven: #3fb950;
   --noise: #6b7686;
   --radius: 8px;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -41,6 +42,7 @@
     --claim: #cf222e;
     --default: #9a6700;
     --secret: #0969da;
+    --proven: #1a7f37;
     --noise: #6e7781;
   }
 }
@@ -220,6 +222,7 @@ select { cursor: pointer; }
 .sw-t3 { background: var(--t3); }
 .sw-t4 { background: var(--t4); }
 .sw-claim { background: var(--claim); }
+.sw-proven { background: var(--proven); }
 .sw-default { background: var(--default); }
 .sw-secret { background: var(--secret); }
 .sw-noise { background: var(--noise); }
@@ -285,6 +288,7 @@ tbody tr.noise-row td:not(.c-name):not(.c-notes):not(.c-check) { opacity: 0.55; 
 .b-t3 { background: rgba(163, 113, 247, 0.16); color: var(--t3); }
 .b-t4 { background: rgba(139, 148, 158, 0.16); color: var(--t4); }
 .b-claim { background: rgba(248, 81, 73, 0.16); color: var(--claim); }
+.b-proven { background: rgba(63, 185, 80, 0.16); color: var(--proven); }
 .b-default { background: rgba(210, 153, 34, 0.16); color: var(--default); }
 .b-secret { background: rgba(88, 166, 255, 0.16); color: var(--secret); }
 .b-unknown { background: rgba(139, 148, 158, 0.13); color: var(--fg-faint); }

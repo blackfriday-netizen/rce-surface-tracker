@@ -101,7 +101,7 @@ function cveLinks(s) {
 }
 
 const TIER_LABEL = { T1: 'T1', T2: 'T2', T3: 'T3', T4: 'T4' };
-const TAKE_LABEL = { claim: 'claim', default: 'default', secret: 'secret', unknown: '&mdash;' };
+const TAKE_LABEL = { claim: 'claim', proven: 'proven', default: 'default', secret: 'secret', unknown: '&mdash;' };
 
 /* ---------------- filtering / sorting ---------------- */
 
@@ -269,6 +269,10 @@ function render() {
     DATA.rows.filter(r => r.tier === 'T1').length;
   document.getElementById('statClaim').textContent =
     DATA.rows.filter(r => r.takeover === 'claim').length;
+  const provenEl = document.getElementById('statProven');
+  if (provenEl) {
+    provenEl.textContent = DATA.rows.filter(r => r.takeover === 'proven').length;
+  }
 
   refreshCounters();
 }
