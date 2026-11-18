@@ -38,7 +38,7 @@ window.TRACKER_DATA = {
   "from_unified": 48,
   "from_census": 105,
   "both": 25,
-  "t1": 48
+  "t1": 50
  },
  "rows": [
   {
@@ -60,32 +60,6 @@ window.TRACKER_DATA = {
    "cves": null,
    "also_seen_as": [
     "Apache httpd"
-   ],
-   "source_notes": "",
-   "in_unified": false,
-   "in_census": true,
-   "takeover": "unknown",
-   "takeover_note": "",
-   "noise": false
-  },
-  {
-   "key": "nginx",
-   "name": "nginx",
-   "aliases": [
-    "nginx"
-   ],
-   "class": "media",
-   "tier": "T3",
-   "built_in_rce": false,
-   "confidence": "medium",
-   "netlas": null,
-   "zoomeye": null,
-   "population": 240071381,
-   "measured_by": "product",
-   "rce_path": "php-fpm upload + cgi.fix_pathinfo, alias traversal",
-   "cves": null,
-   "also_seen_as": [
-    "nginx"
    ],
    "source_notes": "",
    "in_unified": false,
@@ -404,6 +378,54 @@ window.TRACKER_DATA = {
    "source_notes": "",
    "in_unified": false,
    "in_census": true,
+   "takeover": "unknown",
+   "takeover_note": "",
+   "noise": false
+  },
+  {
+   "key": "nginx",
+   "name": "nginx",
+   "aliases": [
+    "nginx"
+   ],
+   "class": "network",
+   "tier": "T1",
+   "built_in_rce": true,
+   "confidence": "medium",
+   "netlas": null,
+   "zoomeye": null,
+   "population": 14587684,
+   "measured_by": "probe",
+   "rce_path": "The 2026-11-18 disclosure wave made the web server ITSELF an unauthenticated RCE surface - memory corruption in nginx's own HTTP/2 module, no application bug and no credentials: CVE-2026-123007 (HTTP/2 send_window integer underflow: the connection allowance counter is a 64-bit size_t while NGX_HTTP_V2_MAX_WINDOW is a 32-bit constant, so the bounds check wraps once the counter passes 2^31-1; the queue refund on stream cancel is not bounded, so the counter can be pushed past the maximum - the off_t cast in ngx_http_v2_send_chain() then goes negative and produces an out-of-bounds copy) and CVE-2026-123633 (HTTP/2 connection use-after-free: a connection with no active stream stays on the reusable list, so it can be freed while its request is still running).  Both require HTTP/2 to be enabled; CVE-2026-123007 affects 1.9.5-1.31.8 and CVE-2026-123633 1.19.7-1.31.8, both fixed in 1.30.7 stable / 1.31.9 mainline, and the same release carries ~30 further nginx CVEs (HTTP/3, map/regex, rewrite, SSI, dav, mp4, resolver, alias+try_files).  LABEL PROOF (nginx 1.30.6 in a local container, 2026-11-18): the precondition was triggered and is remotely observable - after the queue refund nginx accepts a WINDOW_UPDATE of 2^31-1 that RFC 9113 6.9.1 requires it to refuse (no GOAWAY/FLOW_CTRL_ERROR), i.e. the flow-control ceiling no longer exists.  The remaining step (the counter past 2^63 and the out-of-bounds copy) is bounded by nginx's own HTTP/2 flood protection (total_bytes/8 > payload_bytes + 1MB; measured: the connection is closed after ~16MB of frames), and the exploit the researchers used is not public - no PoC exists yet in nuclei-templates, Metasploit, exploit-db, Rapid7 or ZDI.  NO RCE WAS EXECUTED against any third-party host.",
+   "cves": "CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-121810, CVE-2026-118899, CVE-2026-125283, CVE-2026-15176, CVE-2026-93479, CVE-2026-95101, CVE-2026-97629, CVE-2026-97205, CVE-2026-90439, CVE-2026-42533, CVE-2026-60005, CVE-2026-56434, CVE-2026-42055, CVE-2026-48142, CVE-2026-9256, CVE-2026-42926, CVE-2026-42945, CVE-2026-42946, CVE-2026-42934, CVE-2026-40460, CVE-2026-40701, CVE-2026-27654, CVE-2026-27784, CVE-2026-32647, CVE-2026-27651, CVE-2026-28753, CVE-2026-28755, CVE-2026-1642, CVE-2025-53859, CVE-2025-23419, CVE-2024-7347, CVE-2024-32760, CVE-2024-31079, CVE-2022-41741, CVE-2022-41742, CVE-2021-23017",
+   "also_seen_as": [
+    "nginx"
+   ],
+   "source_notes": "2026-11-18: 40,043,937 nginx instances answer on 443 (http.header.server=\"nginx\", marker precision 100% - every sampled host carried a live nginx banner).  HTTP/2 is NOT in the search index (banner=\"HTTP/2\" returns 12,124 hits, the intersection with nginx returns 0), so the HTTP/2 share was measured with our own ALPN probe of 250 sampled hosts: 110 of 241 reachable negotiate h2 = 45.6% pooled (32% global / 30% US / 73% DE / 50% BR / 43% IN).  115 of 115 visible versions are >= 1.9.5, i.e. inside the CVE-2026-123007 range.  Affected = 40,043,937 x 45.6% = 14,587,684.  The all-ports nginx count by Server header is 261,238,293.  Workspace: /root/nginx-RCE-2026t/docs/NGINX.md",
+   "in_unified": false,
+   "in_census": true,
+   "takeover": "unknown",
+   "takeover_note": "",
+   "noise": false
+  },
+  {
+   "key": "unified:nginxproxymanager",
+   "name": "Nginx Proxy Manager",
+   "aliases": [],
+   "class": "network",
+   "tier": "T1",
+   "built_in_rce": true,
+   "confidence": "",
+   "netlas": 15363,
+   "zoomeye": 1230,
+   "population": 14587684,
+   "measured_by": "probe",
+   "rce_path": "The 2026-11-18 disclosure wave made the web server ITSELF an unauthenticated RCE surface - memory corruption in nginx's own HTTP/2 module, no application bug and no credentials: CVE-2026-123007 (HTTP/2 send_window integer underflow: the connection allowance counter is a 64-bit size_t while NGX_HTTP_V2_MAX_WINDOW is a 32-bit constant, so the bounds check wraps once the counter passes 2^31-1; the queue refund on stream cancel is not bounded, so the counter can be pushed past the maximum - the off_t cast in ngx_http_v2_send_chain() then goes negative and produces an out-of-bounds copy) and CVE-2026-123633 (HTTP/2 connection use-after-free: a connection with no active stream stays on the reusable list, so it can be freed while its request is still running).  Both require HTTP/2 to be enabled; CVE-2026-123007 affects 1.9.5-1.31.8 and CVE-2026-123633 1.19.7-1.31.8, both fixed in 1.30.7 stable / 1.31.9 mainline, and the same release carries ~30 further nginx CVEs (HTTP/3, map/regex, rewrite, SSI, dav, mp4, resolver, alias+try_files).  LABEL PROOF (nginx 1.30.6 in a local container, 2026-11-18): the precondition was triggered and is remotely observable - after the queue refund nginx accepts a WINDOW_UPDATE of 2^31-1 that RFC 9113 6.9.1 requires it to refuse (no GOAWAY/FLOW_CTRL_ERROR), i.e. the flow-control ceiling no longer exists.  The remaining step (the counter past 2^63 and the out-of-bounds copy) is bounded by nginx's own HTTP/2 flood protection (total_bytes/8 > payload_bytes + 1MB; measured: the connection is closed after ~16MB of frames), and the exploit the researchers used is not public - no PoC exists yet in nuclei-templates, Metasploit, exploit-db, Rapid7 or ZDI.  NO RCE WAS EXECUTED against any third-party host.",
+   "cves": "CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-121810, CVE-2026-118899, CVE-2026-125283, CVE-2026-15176, CVE-2026-93479, CVE-2026-95101, CVE-2026-97629, CVE-2026-97205, CVE-2026-90439, CVE-2026-42533, CVE-2026-60005, CVE-2026-56434, CVE-2026-42055, CVE-2026-48142, CVE-2026-9256, CVE-2026-42926, CVE-2026-42945, CVE-2026-42946, CVE-2026-42934, CVE-2026-40460, CVE-2026-40701, CVE-2026-27654, CVE-2026-27784, CVE-2026-32647, CVE-2026-27651, CVE-2026-28753, CVE-2026-28755, CVE-2026-1642, CVE-2025-53859, CVE-2025-23419, CVE-2024-7347, CVE-2024-32760, CVE-2024-31079, CVE-2022-41741, CVE-2022-41742, CVE-2021-23017",
+   "also_seen_as": [],
+   "source_notes": "Smaller. 2026-11-18: 40,043,937 nginx instances answer on 443 (http.header.server=\"nginx\", marker precision 100% - every sampled host carried a live nginx banner).  HTTP/2 is NOT in the search index (banner=\"HTTP/2\" returns 12,124 hits, the intersection with nginx returns 0), so the HTTP/2 share was measured with our own ALPN probe of 250 sampled hosts: 110 of 241 reachable negotiate h2 = 45.6% pooled (32% global / 30% US / 73% DE / 50% BR / 43% IN).  115 of 115 visible versions are >= 1.9.5, i.e. inside the CVE-2026-123007 range.  Affected = 40,043,937 x 45.6% = 14,587,684.  The all-ports nginx count by Server header is 261,238,293.  Workspace: /root/nginx-RCE-2026t/docs/NGINX.md",
+   "in_unified": true,
+   "in_census": false,
    "takeover": "unknown",
    "takeover_note": "",
    "noise": false
@@ -2835,28 +2857,6 @@ window.TRACKER_DATA = {
    "cves": "",
    "also_seen_as": [],
    "source_notes": "Similar order. Samples generic-ish; may be AI gateway as per prior. Worth sample validation.",
-   "in_unified": true,
-   "in_census": false,
-   "takeover": "unknown",
-   "takeover_note": "",
-   "noise": false
-  },
-  {
-   "key": "unified:nginxproxymanager",
-   "name": "Nginx Proxy Manager",
-   "aliases": [],
-   "class": "",
-   "tier": "",
-   "built_in_rce": null,
-   "confidence": "",
-   "netlas": 15363,
-   "zoomeye": 1230,
-   "population": null,
-   "measured_by": "",
-   "rce_path": "",
-   "cves": "",
-   "also_seen_as": [],
-   "source_notes": "Smaller.",
    "in_unified": true,
    "in_census": false,
    "takeover": "unknown",
