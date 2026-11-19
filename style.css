@@ -319,7 +319,6 @@ tbody tr.noise-row td:not(.c-name):not(.c-notes):not(.c-check) { opacity: 0.55; 
 body.compact table { font-size: 13px; }
 body.compact tbody td { padding: 5px 8px; }
 body.compact textarea.notes { min-height: 38px; font-size: 12px; }
-body.compact .path { font-size: 12px; }
 
 /* Hide raw engine counts to make table narrower (useful when you mostly care about merged + tier + path) */
 .table-scroll.hide-counts .c-num.c-netlas,
@@ -362,18 +361,28 @@ body.compact .path { font-size: 12px; }
 .b-needs { background: rgba(210, 153, 34, 0.16); color: var(--default); }
 
 .classcell { color: var(--fg-dim); font-size: 13px; }
-.path { color: var(--fg-dim); font-size: 13px; line-height: 1.45; display: block; max-height: 4.4em; overflow: hidden; cursor: pointer; position: relative; }
-.path.expanded { max-height: none; }
-.path::after {
-  content: '…';
-  position: absolute; bottom: 0; right: 4px;
-  font-size: 12px; color: var(--accent); opacity: .6;
-  background: var(--bg-2);
-  padding: 0 3px;
-  pointer-events: none;
+
+/* Collapsed paths are clamped to a fixed number of lines so every row has
+   consistent height until the user clicks to unfold a long RCE description. */
+.path {
+  color: var(--fg-dim);
+  font-size: 13px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  cursor: pointer;
 }
-.path.expanded::after { display: none; }
-tr:hover .path::after { background: var(--bg-3); }
+.path.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  max-height: none;
+  overflow: visible;
+}
+
+/* Compact mode override */
+body.compact .path { font-size: 12px; -webkit-line-clamp: 3; }
 .cve {
   font: 12px/1.5 var(--mono);
   color: var(--accent);
