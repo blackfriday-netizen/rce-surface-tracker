@@ -266,8 +266,8 @@ function renderRow(r) {
     <td class="c-tier">${tier}</td>
     <td class="c-class"><span class="classcell">${esc(r.class || '—')}</span></td>
     <td class="c-take">${take}</td>
-    <td class="c-path"><span class="path" data-expandable="true">${esc(r.rce_path || '—')}${pathExtra}</span></td>
-    <td class="c-cve"><span class="cve-list" data-expandable="true">${cveLinks(r.cves)}</span></td>
+    <td class="c-path"><span class="path" data-expandable="true" title="Click to expand/collapse">${esc(r.rce_path || '—')}${pathExtra}</span></td>
+    <td class="c-cve"><span class="cve-list" data-expandable="true" title="Click to expand/collapse">${cveLinks(r.cves)}</span></td>
     <td class="c-notes">${notesCell}</td>
   </tr>`;
 }
