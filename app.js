@@ -224,16 +224,10 @@ function renderRow(r) {
 
   // Every published ZoomEye figure carries the exact query that produced it
   // (recovered from the API credit ledger), so the number can be reproduced
-  // and checked instead of taken on trust.  The query carries the permanent
-  // recency filter (after="2026-09-11"), so the figure is a count of hosts
-  // the engine has seen RECENTLY - i.e. the ones that are still actionable.
-  // The all-time count of index records is carried alongside it, because the
-  // difference between the two is the size of the dead-host tail.
+  // and checked instead of taken on trust.
   const zeTip = [
     r.zoomeye_query ? 'ZoomEye query: ' + r.zoomeye_query : '',
     r.zoomeye_measured ? 'measured ' + r.zoomeye_measured : '',
-    (r.zoomeye_unfiltered && r.zoomeye_unfiltered !== r.zoomeye)
-      ? 'all-time index records: ' + fmt(r.zoomeye_unfiltered) : '',
     r.zoomeye_curated ? 'earlier curated list: ' + r.zoomeye_curated : ''
   ].filter(Boolean).join(' — ');
 
