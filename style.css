@@ -373,6 +373,18 @@ body.compact textarea.notes { min-height: 38px; font-size: 12px; }
   -webkit-line-clamp: 3;
   overflow: hidden;
   cursor: pointer;
+  position: relative;
+}
+.path::after {
+  content: ' …';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: inherit;
+  color: var(--accent);
+  font-size: 11px;
+  opacity: 0.7;
+  padding-left: 4px;
 }
 .path.expanded {
   display: block;
@@ -380,6 +392,7 @@ body.compact textarea.notes { min-height: 38px; font-size: 12px; }
   max-height: none;
   overflow: visible;
 }
+.path.expanded::after { display: none; }
 
 /* Compact mode override */
 body.compact .path { font-size: 12px; -webkit-line-clamp: 3; }
@@ -392,6 +405,18 @@ body.compact .path { font-size: 12px; -webkit-line-clamp: 3; }
   overflow: hidden;
   cursor: pointer;
   font: inherit;
+  position: relative;
+}
+.cve-list::after {
+  content: ' …';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: inherit;
+  color: var(--accent);
+  font-size: 11px;
+  opacity: 0.7;
+  padding-left: 4px;
 }
 .cve-list.expanded {
   display: block;
@@ -399,6 +424,7 @@ body.compact .path { font-size: 12px; -webkit-line-clamp: 3; }
   max-height: none;
   overflow: visible;
 }
+.cve-list.expanded::after { display: none; }
 
 .cve {
   font: 12px/1.5 var(--mono);
