@@ -12,22 +12,34 @@ so the per-engine counts and the merged census sit side by side:
 
 | Source | What it contributes |
 |---|---|
-| `data/unified-netlas-zoomeye-rce-surfaces.json` | The curated list: 48 distinct products with a **Netlas** count and a **ZoomEye** count each, plus analyst notes. |
+| `data/unified-netlas-zoomeye-rce-surfaces.json` | The curated list: 47 distinct products with a **Netlas** count and a **ZoomEye** count each, plus analyst notes. |
 | `Zoomeye-Global-Discovery/data/rce-surface-final.json` | The merged census: 105 measured entries with a merged population, **tier**, **class**, RCE-path description, CVEs, confidence and how the population was measured. |
 
 Rows are joined on an explicit alias table (`tools/build_rce_tracker.py`), not
 on fuzzy substring matching. 25 products appear in both sources and carry both
 sets of numbers.
 
-**128 rows total** — 48 from the curated list, 105 from the census, 25 in both.
+**127 rows total** — 47 from the curated list, 105 from the census, 25 in both.
+Every row carries a ZoomEye figure; every row carries a merged figure.
 
 ## Reading the columns
 
-* **Netlas / ZoomEye** — per-engine measured populations. A dash means the
-  product was not queried on that engine or the result was too low to be
-  meaningful. It does **not** mean zero.
-* **Merged** — the census figure. It is *not* the sum of the two engine
-  columns: the engines crawl different corpora and overlap.
+* **ZoomEye** — the raw ZoomEye index count for the fingerprint that was
+  measured: `product=`, `title=`, `app=`, `http.body=` or
+  `http.header.server=`. Hover the number in the page for the **exact query**
+  and the date it was measured — the query was recovered from the ZoomEye API
+  credit ledger, so every figure can be reproduced instead of taken on trust.
+  This is the number of hosts the index says carry the product, with **no**
+  version or configuration condition applied.
+* **Netlas** — per-engine measured population from the curated list. A dash
+  means the product was not queried on that engine or the result was too low
+  to be meaningful. It does **not** mean zero.
+* **Merged** — the *affected* population: the census figure, or a
+  probe-verified figure where the index fingerprint was wrong (Nagios) or the
+  exposure needed a version/configuration condition (nginx). It is *not* the
+  sum of the two engine columns — the engines crawl different corpora and
+  overlap — and it can be much smaller than the raw index count when a
+  condition was applied.
 * **Tier** — how the code execution happens.
   * **T1** the product's own admin plane executes code (file manager, task
     queue, CI runner, container run, configuration script)

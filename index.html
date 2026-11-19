@@ -175,9 +175,9 @@
         <tr>
           <th class="c-check" scope="col"><span class="vh">Reviewed</span></th>
           <th class="c-name" scope="col">Product</th>
-          <th class="c-num" scope="col" title="Netlas measured population">Netlas</th>
-          <th class="c-num" scope="col" title="ZoomEye measured population">ZoomEye</th>
-          <th class="c-num" scope="col" title="Merged population (census)">Merged</th>
+          <th class="c-num" scope="col" title="Netlas measured population (curated cross-reference)">Netlas</th>
+          <th class="c-num" scope="col" title="Raw ZoomEye index count for the measured fingerprint - hover a number for the exact query">ZoomEye</th>
+          <th class="c-num" scope="col" title="Affected population: the census figure, or a probe-verified figure where a condition was applied">Merged</th>
           <th class="c-tier" scope="col">Tier</th>
           <th class="c-class" scope="col">Class</th>
           <th class="c-take" scope="col">Window</th>
@@ -195,10 +195,12 @@
   <section class="notes-about" aria-label="About the data">
     <h2>About these numbers</h2>
     <dl>
-      <dt>Netlas / ZoomEye columns</dt>
-      <dd>Per-engine measured populations from the curated cross-reference list. A dash means the product was not queried on that engine, or the result was too low to be meaningful &mdash; not zero.</dd>
+      <dt>ZoomEye column</dt>
+      <dd>The raw ZoomEye index count for the fingerprint that was measured &mdash; <code>product=</code>, <code>title=</code>, <code>app=</code>, <code>http.body=</code> or <code>http.header.server=</code>. Hover the number for the <b>exact query</b> and the date it was measured: the query was recovered from the API credit ledger, so every figure can be reproduced. This is how many hosts the index says carry the product, with no version or configuration condition applied.</dd>
+      <dt>Netlas column</dt>
+      <dd>Per-engine measured population from the curated cross-reference list. A dash means the product was not queried on that engine, or the result was too low to be meaningful &mdash; not zero.</dd>
       <dt>Merged column</dt>
-      <dd>The census figure from the merged Netlas+ZoomEye product census, measured by product, title or app fingerprint. It is not the sum of the two engine columns: the engines crawl different corpora and overlap.</dd>
+      <dd>The <b>affected</b> population: the census figure (measured by product, title or app fingerprint), or a probe-verified figure where the index fingerprint was wrong (Nagios) or the exposure needed a version or configuration condition (nginx). It is not the sum of the two engine columns &mdash; the engines crawl different corpora and overlap &mdash; and it can be much smaller than the raw index count when a condition was applied.</dd>
       <dt>Rows with only engine columns</dt>
       <dd>Present in the curated list but not carried into the merged census, usually because the population was too low to clear the census threshold or the match was noisy. The per-engine numbers still stand.</dd>
       <dt>Noise flag</dt>

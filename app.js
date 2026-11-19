@@ -208,6 +208,20 @@ function renderRow(r) {
 
   const pathExtra = r.takeover_note ? ` <span class="aliases">${esc(r.takeover_note)}</span>` : '';
 
+  // Every published ZoomEye figure carries the exact query that produced it
+  // (recovered from the API credit ledger), so the number can be reproduced
+  // and checked instead of taken on trust.
+  const zeTip = [
+    r.zoomeye_query ? 'ZoomEye query: ' + r.zoomeye_query : '',
+    r.zoomeye_measured ? 'measured ' + r.zoomeye_measured : '',
+    r.zoomeye_curated ? 'earlier curated list: ' + r.zoomeye_curated : ''
+  ].filter(Boolean).join(' — ');
+
+  const popTip = [
+    'affected population',
+    r.measured_by ? 'measured by ' + r.measured_by : ''
+  ].filter(Boolean).join(' — ');
+
   const notesCell = view.notes === 'hidden'
     ? (hasNote(r) ? '<span class="note-flag">has note</span>' : '')
     : `<textarea class="notes" data-key="${key}" placeholder="add a note&hellip;"
@@ -223,8 +237,8 @@ function renderRow(r) {
       ${r.noise ? ' <span class="badge b-noise">noise</span>' : ''}
     </td>
     <td class="c-num">${fmt(r.netlas)}</td>
-    <td class="c-num">${fmt(r.zoomeye)}</td>
-    <td class="c-num"><b>${fmt(r.population)}</b></td>
+    <td class="c-num"${zeTip ? ` title="${esc(zeTip)}"` : ''}>${fmt(r.zoomeye)}</td>
+    <td class="c-num" title="${esc(popTip)}"><b>${fmt(r.population)}</b></td>
     <td class="c-tier">${tier}</td>
     <td class="c-class"><span class="classcell">${esc(r.class || '—')}</span></td>
     <td class="c-take">${take}</td>
