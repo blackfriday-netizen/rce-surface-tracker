@@ -267,7 +267,7 @@ function renderRow(r) {
     <td class="c-class"><span class="classcell">${esc(r.class || '—')}</span></td>
     <td class="c-take">${take}</td>
     <td class="c-path"><span class="path" data-expandable="true">${esc(r.rce_path || '—')}${pathExtra}</span></td>
-    <td class="c-cve">${cveLinks(r.cves)}</td>
+    <td class="c-cve"><span class="cve-list" data-expandable="true">${cveLinks(r.cves)}</span></td>
     <td class="c-notes">${notesCell}</td>
   </tr>`;
 }
@@ -501,11 +501,11 @@ document.addEventListener('input', e => {
   }
 });
 
-// Expand/collapse long RCE path descriptions (click anywhere in the cell)
+// Expand/collapse long RCE paths and CVE lists (click the content to toggle)
 document.addEventListener('click', e => {
-  const p = e.target.closest('.path[data-expandable]');
-  if (p) {
-    p.classList.toggle('expanded');
+  const fold = e.target.closest('[data-expandable]');
+  if (fold) {
+    fold.classList.toggle('expanded');
     // prevent textarea or checkbox interference
     e.stopPropagation();
   }

@@ -383,6 +383,23 @@ body.compact textarea.notes { min-height: 38px; font-size: 12px; }
 
 /* Compact mode override */
 body.compact .path { font-size: 12px; -webkit-line-clamp: 3; }
+
+/* CVE list also foldable to prevent tall rows from many CVEs */
+.cve-list {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+}
+.cve-list.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  max-height: none;
+  overflow: visible;
+}
+
 .cve {
   font: 12px/1.5 var(--mono);
   color: var(--accent);
