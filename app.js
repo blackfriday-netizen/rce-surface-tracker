@@ -109,7 +109,8 @@ function rowText(r) {
   return [
     r.name, r.key, r.class, r.tier, r.rce_path, r.cves,
     (r.aliases || []).join(' '), (r.also_seen_as || []).join(' '),
-    r.source_notes, r.takeover_note, r.confidence, r.measured_by
+    r.source_notes, r.takeover_note, r.confidence, r.measured_by,
+    r.needs_list ? 'needs list' : ''
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
@@ -219,8 +220,18 @@ function renderRow(r) {
 
   const popTip = [
     'affected population',
-    r.measured_by ? 'measured by ' + r.measured_by : ''
+    r.measured_by ? 'measured by ' + r.measured_by : '',
+    r.needs_list ? 'NEEDS A HOST LIST: the figure is a candidate total, not a ' +
+                  'measured population - ' + (r.needs_list_reason || '') : ''
   ].filter(Boolean).join(' — ');
+
+  // A row whose population was never probed against live hosts gets a
+  // visible mark: the number must not be read as an exposure figure.
+  const needsBadge = r.needs_list
+    ? ' <span class="badge b-needs" title="' +
+        esc('Needs a host list: ' + (r.needs_list_reason || '')) +
+      '">needs list</span>'
+    : '';
 
   const notesCell = view.notes === 'hidden'
     ? (hasNote(r) ? '<span class="note-flag">has note</span>' : '')
@@ -238,7 +249,7 @@ function renderRow(r) {
     </td>
     <td class="c-num">${fmt(r.netlas)}</td>
     <td class="c-num"${zeTip ? ` title="${esc(zeTip)}"` : ''}>${fmt(r.zoomeye)}</td>
-    <td class="c-num" title="${esc(popTip)}"><b>${fmt(r.population)}</b></td>
+    <td class="c-num" title="${esc(popTip)}"><b>${fmt(r.population)}</b>${needsBadge}</td>
     <td class="c-tier">${tier}</td>
     <td class="c-class"><span class="classcell">${esc(r.class || '—')}</span></td>
     <td class="c-take">${take}</td>

@@ -40,6 +40,12 @@ Every row carries a ZoomEye figure; every row carries a merged figure.
   sum of the two engine columns — the engines crawl different corpora and
   overlap — and it can be much smaller than the raw index count when a
   condition was applied.
+* **needs list** — a badge on rows whose number exists but whose marker
+  precision was never measured against live hosts. The figure is a
+  *candidate total*, not a population: the row needs a host list and a probe
+  before the number can be read as exposure. Hover the badge for the reason.
+  (VestaCP is the current example: 227,612 is the ZoomEye `title="Vesta"`
+  count, a contains match on `<title>Vesta - Login</title>`.)
 * **Tier** — how the code execution happens.
   * **T1** the product's own admin plane executes code (file manager, task
     queue, CI runner, container run, configuration script)

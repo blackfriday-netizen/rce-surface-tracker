@@ -203,6 +203,8 @@
       <dd>The <b>affected</b> population: the census figure (measured by product, title or app fingerprint), or a probe-verified figure where the index fingerprint was wrong (Nagios) or the exposure needed a version or configuration condition (nginx). It is not the sum of the two engine columns &mdash; the engines crawl different corpora and overlap &mdash; and it can be much smaller than the raw index count when a condition was applied.</dd>
       <dt>Rows with only engine columns</dt>
       <dd>Present in the curated list but not carried into the merged census, usually because the population was too low to clear the census threshold or the match was noisy. The per-engine numbers still stand.</dd>
+      <dt>needs list badge</dt>
+      <dd>The row&rsquo;s population number exists, but its marker precision was never measured against live hosts &mdash; so it is a <b>candidate total</b>, not a population. The row needs a host list and a probe (one request per host) before the number can be read as exposure. Hover the badge for the reason.</dd>
       <dt>Noise flag</dt>
       <dd>Two curated entries matched generic page titles across unrelated sites. Their counts are real matches for the string, not for the product.</dd>
       <dt>Confidence</dt>

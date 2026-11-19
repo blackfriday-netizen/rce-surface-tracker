@@ -293,6 +293,7 @@ tbody tr.noise-row td:not(.c-name):not(.c-notes):not(.c-check) { opacity: 0.55; 
 .b-secret { background: rgba(88, 166, 255, 0.16); color: var(--secret); }
 .b-unknown { background: rgba(139, 148, 158, 0.13); color: var(--fg-faint); }
 .b-noise { background: rgba(139, 148, 158, 0.16); color: var(--noise); }
+.b-needs { background: rgba(210, 153, 34, 0.16); color: var(--default); }
 
 .classcell { color: var(--fg-dim); font-size: 13px; }
 .path { color: var(--fg-dim); font-size: 13px; line-height: 1.45; }
