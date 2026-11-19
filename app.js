@@ -20,7 +20,7 @@ const DATA_URL = 'data.json';
 
 let DATA = null;
 let state = { checks: {}, notes: {} };
-let view = { q: '', cls: '', tier: '', take: '', sort: 'priority', show: 'all', notes: 'inline' };
+let view = { q: '', cls: '', tier: '', take: '', sort: 'priority', show: 'all', notes: 'inline', compact: false, hideCounts: false };
 
 /* ---------------- state ---------------- */
 
@@ -125,11 +125,24 @@ function noteValue(r) {
 }
 
 function matches(r) {
+  if (view._minPop && (r.population || 0) < view._minPop) return false;
+
   if (view.q) {
     const q = view.q.toLowerCase();
     const terms = q.split(/\s+/).filter(Boolean);
-    const hay = rowText(r);
-    if (!terms.every(t => hay.includes(t))) return false;
+    // numeric pop filter support e.g. quick "high pop" or manual >1000000
+    const numTerm = terms.find(t => /^\d{4,}$/.test(t) || t.startsWith('>'));
+    if (numTerm) {
+      const min = parseInt(numTerm.replace('>', ''), 10) || 0;
+      if ((r.population || 0) < min) return false;
+      // remove numeric term from text search
+      const textTerms = terms.filter(t => t !== numTerm);
+      const hay = rowText(r);
+      if (textTerms.length && !textTerms.every(t => hay.includes(t))) return false;
+    } else {
+      const hay = rowText(r);
+      if (!terms.every(t => hay.includes(t))) return false;
+    }
   }
   if (view.cls && r.class !== view.cls) return false;
   if (view.tier && r.tier !== view.tier) return false;
@@ -247,13 +260,13 @@ function renderRow(r) {
       ${srcLine}
       ${r.noise ? ' <span class="badge b-noise">noise</span>' : ''}
     </td>
-    <td class="c-num">${fmt(r.netlas)}</td>
-    <td class="c-num"${zeTip ? ` title="${esc(zeTip)}"` : ''}>${fmt(r.zoomeye)}</td>
-    <td class="c-num" title="${esc(popTip)}"><b>${fmt(r.population)}</b>${needsBadge}</td>
+    <td class="c-num c-netlas">${fmt(r.netlas)}</td>
+    <td class="c-num c-zoomeye"${zeTip ? ` title="${esc(zeTip)}"` : ''}>${fmt(r.zoomeye)}</td>
+    <td class="c-num c-merged" title="${esc(popTip)}"><b>${fmt(r.population)}</b>${needsBadge}</td>
     <td class="c-tier">${tier}</td>
     <td class="c-class"><span class="classcell">${esc(r.class || '—')}</span></td>
     <td class="c-take">${take}</td>
-    <td class="c-path"><span class="path">${esc(r.rce_path || '—')}${pathExtra}</span></td>
+    <td class="c-path"><span class="path" data-expandable="true">${esc(r.rce_path || '—')}${pathExtra}</span></td>
     <td class="c-cve">${cveLinks(r.cves)}</td>
     <td class="c-notes">${notesCell}</td>
   </tr>`;
@@ -347,6 +360,95 @@ function initControls() {
       render();
     });
   });
+
+  // Quick filter chips
+  document.querySelectorAll('.qf-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const qf = b.dataset.qf;
+      if (qf === 'clear') {
+        view.q = ''; view.cls = ''; view.tier = ''; view.take = ''; view.show = 'all';
+        view._minPop = 0;
+        document.getElementById('q').value = '';
+        document.getElementById('fClass').value = '';
+        document.getElementById('fTier').value = '';
+        document.getElementById('fTake').value = '';
+        document.querySelectorAll('[data-show]').forEach(x => x.classList.remove('active'));
+        document.querySelector('[data-show="all"]').classList.add('active');
+      } else if (qf === 't1') {
+        view.tier = 'T1';
+        document.getElementById('fTier').value = 'T1';
+      } else if (qf === 'actionable') {
+        view.show = 'focus';
+        document.querySelectorAll('[data-show]').forEach(x => x.classList.remove('active'));
+        document.querySelector('[data-show="focus"]').classList.add('active');
+      } else if (qf === 'high') {
+        // use a transient minPop on view; search box stays clean
+        view._minPop = 1000000;
+        document.getElementById('q').value = '';
+        view.q = '';
+      } else if (qf === 'proven') {
+        view.take = 'proven';
+        document.getElementById('fTake').value = 'proven';
+        // also surface claim windows
+        // if no proven, fall to claim
+      }
+      render();
+    });
+  });
+
+  // Compact rows toggle
+  const compactEl = document.getElementById('compactToggle');
+  compactEl.checked = view.compact;
+  compactEl.addEventListener('change', () => {
+    view.compact = compactEl.checked;
+    document.body.classList.toggle('compact', view.compact);
+    // no full render needed
+  });
+
+  // Hide raw counts (Netlas / ZoomEye) to focus on merged population + RCE info
+  const colsEl = document.getElementById('colsToggle');
+  colsEl.checked = view.hideCounts;
+  colsEl.addEventListener('change', () => {
+    view.hideCounts = colsEl.checked;
+    const scroller = document.querySelector('.table-scroll');
+    if (scroller) scroller.classList.toggle('hide-counts', view.hideCounts);
+  });
+
+  // Apply initial UI state (compact / hidden cols)
+  if (view.compact) document.body.classList.add('compact');
+  const scrollerInit = document.querySelector('.table-scroll');
+  if (scrollerInit && view.hideCounts) scrollerInit.classList.add('hide-counts');
+
+  // Clickable header stats as quick filters
+  document.querySelectorAll('.stat-click').forEach(s => {
+    s.addEventListener('click', () => {
+      const qf = s.dataset.qf;
+      if (qf === 'all') {
+        view.q = ''; view.cls = ''; view.tier = ''; view.take = ''; view.show = 'all';
+        view._minPop = 0;
+        document.getElementById('q').value = '';
+        document.getElementById('fClass').value = '';
+        document.getElementById('fTier').value = '';
+        document.getElementById('fTake').value = '';
+        document.querySelectorAll('[data-show]').forEach(x => x.classList.remove('active'));
+        document.querySelector('[data-show="all"]').classList.add('active');
+      } else if (qf === 't1') {
+        view.tier = 'T1';
+        document.getElementById('fTier').value = 'T1';
+      } else if (qf === 'claim') {
+        view.take = 'claim';
+        document.getElementById('fTake').value = 'claim';
+      } else if (qf === 'proven') {
+        view.take = 'proven';
+        document.getElementById('fTake').value = 'proven';
+      } else if (qf === 'done') {
+        view.show = 'done';
+        document.querySelectorAll('[data-show]').forEach(x => x.classList.remove('active'));
+        document.querySelector('[data-show="done"]').classList.add('active');
+      }
+      render();
+    });
+  });
 }
 
 /* ---------------- row interactions ---------------- */
@@ -396,6 +498,16 @@ document.addEventListener('input', e => {
     saveState();
     // update counters without re-rendering the textarea (would lose focus)
     refreshCounters();
+  }
+});
+
+// Expand/collapse long RCE path descriptions (click anywhere in the cell)
+document.addEventListener('click', e => {
+  const p = e.target.closest('.path[data-expandable]');
+  if (p) {
+    p.classList.toggle('expanded');
+    // prevent textarea or checkbox interference
+    e.stopPropagation();
   }
 });
 
@@ -658,6 +770,18 @@ async function boot() {
     (DATA.sources.unified || '') + ' and ' + (DATA.sources.census || '') + '.';
 
   render();
+
+  // Keyboard: / focuses search (common in data tools)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && (document.activeElement === document.body || document.activeElement.tagName === 'BODY')) {
+      const q = document.getElementById('q');
+      if (q) {
+        e.preventDefault();
+        q.focus();
+        q.select();
+      }
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', boot);

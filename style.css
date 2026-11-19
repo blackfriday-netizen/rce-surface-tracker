@@ -95,6 +95,8 @@ h1 {
 
 .masthead-meta { display: flex; gap: 26px; flex-wrap: wrap; }
 .stat { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-click { cursor: pointer; border-radius: 4px; padding: 2px 4px; }
+.stat-click:hover { background: var(--bg-3); }
 .stat-n {
   font: 600 19px/1.1 var(--mono);
   font-variant-numeric: tabular-nums;
@@ -130,6 +132,58 @@ h1 {
   flex-wrap: wrap;
 }
 .control-row-2 { margin-top: 12px; }
+
+/* Quick filters row */
+.quick-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+.qf-label {
+  color: var(--fg-faint);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 2px;
+}
+.qf-btn {
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  color: var(--fg-dim);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.qf-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.qf-btn.clear {
+  color: var(--fg-faint);
+}
+.qf-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--line);
+  margin: 0 4px;
+}
+.qf-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  margin-left: 4px;
+  cursor: pointer;
+}
+.qf-compact input { accent-color: var(--accent); }
 .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .field.grow { flex: 1 1 260px; }
 .field-actions { flex: 0 0 auto; }
@@ -261,6 +315,18 @@ tbody tr.done { background: rgba(63, 185, 80, 0.07); }
 tbody tr.done:hover { background: rgba(63, 185, 80, 0.11); }
 tbody tr.noise-row td:not(.c-name):not(.c-notes):not(.c-check) { opacity: 0.55; }
 
+/* Compact rows */
+body.compact table { font-size: 13px; }
+body.compact tbody td { padding: 5px 8px; }
+body.compact textarea.notes { min-height: 38px; font-size: 12px; }
+body.compact .path { font-size: 12px; }
+
+/* Hide raw engine counts to make table narrower (useful when you mostly care about merged + tier + path) */
+.table-scroll.hide-counts .c-num.c-netlas,
+.table-scroll.hide-counts .c-num.c-zoomeye { display: none; }
+.table-scroll.hide-counts th.c-num.c-netlas,
+.table-scroll.hide-counts th.c-num.c-zoomeye { display: none; }
+
 .c-check { width: 34px; text-align: center; }
 .c-check input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--t1); }
 .c-name { min-width: 190px; }
@@ -296,7 +362,18 @@ tbody tr.noise-row td:not(.c-name):not(.c-notes):not(.c-check) { opacity: 0.55; 
 .b-needs { background: rgba(210, 153, 34, 0.16); color: var(--default); }
 
 .classcell { color: var(--fg-dim); font-size: 13px; }
-.path { color: var(--fg-dim); font-size: 13px; line-height: 1.45; }
+.path { color: var(--fg-dim); font-size: 13px; line-height: 1.45; display: block; max-height: 4.4em; overflow: hidden; cursor: pointer; position: relative; }
+.path.expanded { max-height: none; }
+.path::after {
+  content: '…';
+  position: absolute; bottom: 0; right: 4px;
+  font-size: 12px; color: var(--accent); opacity: .6;
+  background: var(--bg-2);
+  padding: 0 3px;
+  pointer-events: none;
+}
+.path.expanded::after { display: none; }
+tr:hover .path::after { background: var(--bg-3); }
 .cve {
   font: 12px/1.5 var(--mono);
   color: var(--accent);
@@ -450,6 +527,7 @@ textarea.notes::placeholder { color: var(--fg-faint); }
   font-size: 13.5px;
 }
 .notes-about p { color: var(--fg-dim); font-size: 13.5px; }
+.notes-about p.small { font-size: 12px; color: var(--fg-faint); }
 .caveat {
   margin-top: 14px !important;
   padding-top: 12px;

@@ -20,11 +20,11 @@
       </div>
     </div>
     <div class="masthead-meta">
-      <div class="stat"><span class="stat-n" id="statRows">&mdash;</span><span class="stat-l">products</span></div>
-      <div class="stat"><span class="stat-n" id="statT1">&mdash;</span><span class="stat-l">tier T1</span></div>
-      <div class="stat"><span class="stat-n" id="statClaim">&mdash;</span><span class="stat-l">claim-window</span></div>
-      <div class="stat"><span class="stat-n" id="statProven">&mdash;</span><span class="stat-l">takeover proven</span></div>
-      <div class="stat"><span class="stat-n" id="statDone">0</span><span class="stat-l">reviewed</span></div>
+      <div class="stat stat-click" data-qf="all" title="Show all"><span class="stat-n" id="statRows">&mdash;</span><span class="stat-l">products</span></div>
+      <div class="stat stat-click" data-qf="t1" title="Filter to T1"><span class="stat-n" id="statT1">&mdash;</span><span class="stat-l">tier T1</span></div>
+      <div class="stat stat-click" data-qf="claim" title="Filter to claim window"><span class="stat-n" id="statClaim">&mdash;</span><span class="stat-l">claim-window</span></div>
+      <div class="stat stat-click" data-qf="proven" title="Filter to proven"><span class="stat-n" id="statProven">&mdash;</span><span class="stat-l">takeover proven</span></div>
+      <div class="stat stat-click" data-qf="done" title="Show reviewed only"><span class="stat-n" id="statDone">0</span><span class="stat-l">reviewed</span></div>
     </div>
   </div>
   <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
@@ -63,6 +63,20 @@
           <option value="reviewed">Reviewed</option>
         </select>
       </div>
+    </div>
+
+    <div class="quick-row" aria-label="Quick filters">
+      <span class="qf-label">Quick:</span>
+      <button type="button" class="qf-btn" data-qf="t1">T1 only</button>
+      <button type="button" class="qf-btn" data-qf="actionable">Actionable</button>
+      <button type="button" class="qf-btn" data-qf="high">High pop (&gt;1M)</button>
+      <button type="button" class="qf-btn" data-qf="proven">Proven / claim</button>
+      <button type="button" class="qf-btn clear" data-qf="clear">Clear filters</button>
+
+      <span class="qf-sep"></span>
+
+      <label class="qf-compact"><input type="checkbox" id="compactToggle"> <span>Compact rows</span></label>
+      <label class="qf-compact"><input type="checkbox" id="colsToggle"> <span>Hide raw counts</span></label>
     </div>
     <div class="control-row control-row-2">
       <div class="field">
@@ -175,9 +189,9 @@
         <tr>
           <th class="c-check" scope="col"><span class="vh">Reviewed</span></th>
           <th class="c-name" scope="col">Product</th>
-          <th class="c-num" scope="col" title="Netlas measured population (curated cross-reference)">Netlas</th>
-          <th class="c-num" scope="col" title="Raw ZoomEye index count for the measured fingerprint - hover a number for the exact query">ZoomEye</th>
-          <th class="c-num" scope="col" title="Affected population: the census figure, or a probe-verified figure where a condition was applied">Merged</th>
+          <th class="c-num c-netlas" scope="col" title="Netlas measured population (curated cross-reference)">Netlas</th>
+          <th class="c-num c-zoomeye" scope="col" title="Raw ZoomEye index count for the measured fingerprint - hover a number for the exact query">ZoomEye</th>
+          <th class="c-num c-merged" scope="col" title="Affected population: the census figure, or a probe-verified figure where a condition was applied">Merged</th>
           <th class="c-tier" scope="col">Tier</th>
           <th class="c-class" scope="col">Class</th>
           <th class="c-take" scope="col">Window</th>
@@ -216,8 +230,9 @@
 
   <section class="notes-about" aria-label="About this tracker">
     <h2>About this tracker</h2>
-    <p>Checkboxes and notes are stored <b>locally in this browser</b> (localStorage) &mdash; nothing is sent anywhere. Use <b>Download JSON</b> to save a snapshot and <b>Import</b> to restore one or move it to another browser.</p>
+    <p>Checkboxes and notes are stored <b>locally in this browser</b> (localStorage) &mdash; nothing is sent anywhere. Use <b>Download JSON</b> to save a snapshot and <b>Import</b> to restore one or move it to another browser. The optional GitHub sync keeps state across devices.</p>
     <p>Every product row also has its own free-text note box. Notes are the working record: what you validated, which port, what the RCE path turned out to be, what you ruled out.</p>
+    <p class="small">New: quick filters &amp; clickable header stats, compact mode, hide raw counts columns, click long RCE paths to expand, <kbd>/</kbd> focuses search.</p>
   </section>
 
 </main>
