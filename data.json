@@ -2535,36 +2535,6 @@
    "noise": false
   },
   {
-   "key": "drupal",
-   "name": "Drupal",
-   "aliases": [
-    "Drupal"
-   ],
-   "class": "cms",
-   "tier": "T1",
-   "built_in_rce": true,
-   "confidence": "high",
-   "netlas": null,
-   "zoomeye": 13567,
-   "zoomeye_query": "product=\"Drupal\" && after=\"2026-09-11\"",
-   "zoomeye_measured": "2026-11-19",
-   "zoomeye_unfiltered": 204091,
-   "zoomeye_curated": "",
-   "needs_list": false,
-   "needs_list_reason": "",
-   "population": 13567,
-   "measured_by": "product",
-   "rce_path": "module/theme install and update run PHP, PHP file filter in Drush",
-   "cves": null,
-   "also_seen_as": [],
-   "source_notes": "RECENCY-FILTERED (permanent rule, operator 2026-11-19): after=\"2026-09-11\" takes this row's ZoomEye count from 204,091 to 13,567 - the unfiltered number is a count of index records, most of whose hosts no longer exist.",
-   "in_unified": false,
-   "in_census": true,
-   "takeover": "unknown",
-   "takeover_note": "",
-   "noise": false
-  },
-  {
    "key": "zabbix",
    "name": "Zabbix",
    "aliases": [
@@ -2946,6 +2916,36 @@
    "in_census": true,
    "takeover": "unknown",
    "takeover_note": "",
+   "noise": false
+  },
+  {
+   "key": "drupal",
+   "name": "Drupal",
+   "aliases": [
+    "Drupal"
+   ],
+   "class": "cms",
+   "tier": "T1",
+   "built_in_rce": true,
+   "confidence": "high",
+   "netlas": null,
+   "zoomeye": 13572,
+   "zoomeye_query": "product=\"Drupal\" && after=\"2026-09-11\"",
+   "zoomeye_measured": "2026-11-19",
+   "zoomeye_unfiltered": 204091,
+   "zoomeye_curated": "",
+   "needs_list": false,
+   "needs_list_reason": "",
+   "population": 5655,
+   "measured_by": "probe",
+   "rce_path": "UNAUTHENTICATED RCE - CVE-2026-132165 (SA-CORE-2026-017, Critical 18/25, A:None, E:Proof, released 2026-11-18): the Drupal installer at core/install.php refuses to run over an existing installation with three guards, and a site whose settings.php carries no usable config_sync_directory defeats all three at once (config_verified=false -> settings_verified=false -> the installer boots in the 'install' environment with a null state backend -> install_task reads back NULL -> guards 2 and 3 cannot fire; and guard 1 is skipped because the configured database is healthy).  An anonymous request then starts a fresh installation over the live site, the installer discloses the site's own database settings in the pre-filled database form, and the database-form POST rewrites sites/default/settings.php with the attacker's database (the pre-fix installer also chmods a read-only settings.php, which is why the advisory's mitigation is about write access to settings.php).  The install then creates an administrator account with the attacker's password: SITE TAKEOVER, and with the database under the attacker's control the SA-CORE-2026-018 gadget chain (the persistent cache backend unserializes database-controlled data: DatabaseBackend::prepareItem -> serializer->decode -> unserialize, and Drupal\\Core\\Cache\\CacheCollector is the gadget) turns that into CODE EXECUTION.  MEASURED in a lab (Drupal 10.6.21 in a local container): the guard flags were instrumented and an anonymous request was shown to start the installer instead of answering 'Drupal already installed'; the installer disclosed the site's own database host, user and database name; and the database-form POST was shown to rewrite settings.php to the attacker's database.  NOT YET MEASURED here: the last step of the chain - the installer's 'Configure site' step creating the administrator account - was not driven to completion in the lab (the installer's batch state does not survive the database switch), and the property-oriented-programming chain for the gadget was not constructed; the advisory itself states that the gadget issue 'is not directly exploitable' without a separate unserialize() sink.",
+   "cves": "CVE-2026-132165, CVE-2026-132166",
+   "also_seen_as": [],
+   "source_notes": "2026-11-19: Drupal core ships a browser installer at core/install.php.  On a site whose settings.php has no usable config_sync_directory the installer's three \"already installed\" guards are all defeated and an ANONYMOUS request starts a fresh installation over the live site (CVE-2026-132165 / SA-CORE-2026-017, Critical 18/25, A:None, E:Proof, released 2026-11-18, affects <10.6.22 || >=11.0.0 <11.3.22 || >=11.4.0 <11.4.13; Drupal 8, 9, 10.5.x and 11.2.x are EOL and unpatched).  The mechanism was derived from the fix diff (10.6.21->10.6.22 and 11.4.12->11.4.13) and REPRODUCED in a lab: the guard state was instrumented and shows db_verified=true, config_verified=false, settings_verified=false, base_system_verified=false and the install environment's null state backend, so install_task reads back NULL and none of the three guards fires.  The installer also DISCLOSES the site's own database host, user and database name in the pre-filled database form, and rewrites sites/default/settings.php with whatever database the attacker submits (the pre-fix installer even chmods a read-only settings.php to make it writable - that is the advisory's own mitigation sentence).  The fix closes it with one line (the \"is the site already installed\" table check now runs whenever settings_verified is false, not only when the database is unreachable) plus three more guards: install_time, a configured-database-failed requirements error, and an install-session token.  The companion advisory SA-CORE-2026-018 / CVE-2026-132166 (gadget chain, released the same day) is the code-execution leg: Drupal's persistent cache backend unserializes database-controlled data (DatabaseBackend::prepareItem -> serializer->decode) and Drupal\\Core\\Cache\\CacheCollector is the gadget class the fix hardens. 2026-11-19: Drupal core ships a browser installer at core/install.php.  On a site whose settings.php has no usable config_sync_directory the installer's three \"already installed\" guards are all defeated and an ANONYMOUS request starts a fresh installation over the live site (CVE-2026-132165 / SA-CORE-2026-017, Critical 18/25, A:None, E:Proof, released 2026-11-18, affects <10.6.22 || >=11.0.0 <11.3.22 || >=11.4.0 <11.4.13; Drupal 8, 9, 10.5.x and 11.2.x are EOL and unpatched).  The mechanism was derived from the fix diff (10.6.21->10.6.22 and 11.4.12->11.4.13) and REPRODUCED in a lab: the guard state was instrumented and shows db_verified=true, config_verified=false, settings_verified=false, base_system_verified=false and the install environment's null state backend, so install_task reads back NULL and none of the three guards fires.  The installer also DISCLOSES the site's own database host, user and database name in the pre-filled database form, and rewrites sites/default/settings.php with whatever database the attacker submits (the pre-fix installer even chmods a read-only settings.php to make it writable - that is the advisory's own mitigation sentence).  The fix closes it with one line (the \"is the site already installed\" table check now runs whenever settings_verified is false, not only when the database is unreachable) plus three more guards: install_time, a configured-database-failed requirements error, and an install-session token.  The companion advisory SA-CORE-2026-018 / CVE-2026-132166 (gadget chain, released the same day) is the code-execution leg: Drupal's persistent cache backend unserializes database-controlled data (DatabaseBackend::prepareItem -> serializer->decode) and Drupal\\Core\\Cache\\CacheCollector is the gadget class the fix hardens. 2026-11-19: the marker product=\"Drupal\" measured 41.7% precise and 41.7% live over a 72-host depth-stratified sample (a depth-stratified sample is required: the index orders every query by recency, so page 1 is not a random sample).  30 of 72 sampled hosts answered with a real Drupal page; the index total of 13,572 recency-filtered records therefore corresponds to about 5,655 live Drupal sites.  Of the confirmed Drupal hosts, 1 still expose the installer at core/install.php (3.3%) - that is the ENTRY CONDITION for CVE-2026-132165 and the only part of it that is remotely observable.  The remaining exploit conditions (no usable config_sync_directory, and a settings.php the web server can write) are not observable from outside and are reported as conditions, never as a count.  Other markers were measured and rejected: http.header.x-generator=\"Drupal\" returns 0 (Drupal sends no such header), title=\"Drupal\" is a contains-match (862), and http.body=\"Drupal\" is 479,371 records of noise.",
+   "in_unified": false,
+   "in_census": true,
+   "takeover": "claim",
+   "takeover_note": "2026-11-19: the takeover is the installer's own account-creation step - whoever completes the installation owns the administrator account, and no credential is needed to get there.  The entry conditions are that the installer is still reachable at core/install.php and that the site's settings.php has no usable config_sync_directory; of the confirmed live Drupal hosts in the sample, 1 still expose the installer (3.3%), and the config_sync_directory condition cannot be measured from outside.  MEASURED in the lab: an anonymous request starts the installer on a fully installed Drupal 10.6.21 panel, the installer discloses the site's own database settings, and the database-form POST rewrites sites/default/settings.php to point at the attacker's database.",
    "noise": false
   },
   {
